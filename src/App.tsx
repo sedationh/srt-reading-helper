@@ -1,4 +1,5 @@
 import { Box, Button, Container, Flex, HStack, VStack } from "@chakra-ui/react";
+import { useGetState } from "ahooks";
 import { useEffect, useRef, useState } from "react";
 import ReactPlayer from "react-player";
 
@@ -36,9 +37,11 @@ function App() {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [subtitles, setSubtitles] = useState<Subtitle[]>([]);
   const [currentTime, setCurrentTime] = useState(0);
-  const [isUserScrolling, setIsUserScrolling] = useState(false);
-  const [scrollTimeout, setScrollTimeout] = useState<number | null>(null);
+  const [isUserScrolling, setIsUserScrolling] = useGetState(false);
+  const scrollTimeoutRef = useRef<number | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
   const subtitlesContainerRef = useRef<HTMLDivElement>(null);
+  const playerRef = useRef<ReactPlayer>(null);
 
   const handleVideoImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -85,8 +88,8 @@ function App() {
     setIsUserScrolling(true);
     
     // Clear existing timeout
-    if (scrollTimeout) {
-      window.clearTimeout(scrollTimeout);
+    if (scrollTimeoutRef.current) {
+      window.clearTimeout(scrollTimeoutRef.current);
     }
     
     // Set new timeout
@@ -94,13 +97,13 @@ function App() {
       setIsUserScrolling(false);
     }, 1000); // Reset after 1 second of no scrolling
     
-    setScrollTimeout(timeout);
+    scrollTimeoutRef.current = timeout;
   };
 
   // Auto-scroll to current subtitle
   useEffect(() => {
     const currentSubs = getCurrentSubtitles();
-    if (currentSubs.length > 0 && !isUserScrolling && subtitlesContainerRef.current) {
+    if (currentSubs.length > 0 && !isUserScrolling && subtitlesContainerRef.current && isPlaying) {
       const currentSubElement = document.getElementById(`subtitle-${currentSubs[0].id}`);
       if (currentSubElement) {
         currentSubElement.scrollIntoView({
@@ -114,11 +117,19 @@ function App() {
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
-      if (scrollTimeout) {
-        window.clearTimeout(scrollTimeout);
+      if (scrollTimeoutRef.current) {
+        window.clearTimeout(scrollTimeoutRef.current);
       }
     };
-  }, [scrollTimeout]);
+  }, []);
+
+  const handleSeek = (timeStr: string) => {
+    const seconds = timeToSeconds(timeStr);
+    if (playerRef.current) {
+      playerRef.current.seekTo(seconds, 'seconds');
+      setIsPlaying(true);
+    }
+  };
 
   return (
     <Container maxW="container.xl" py={8}>
@@ -128,11 +139,15 @@ function App() {
             <Box flex={1} borderWidth={1} borderRadius="lg" overflow="hidden" bg="gray.100">
               {videoUrl ? (
                 <ReactPlayer
+                  ref={playerRef}
                   url={videoUrl}
                   width="100%"
                   height="100%"
                   controls
+                  playing={isPlaying}
                   onProgress={handleProgress}
+                  onPause={() => setIsPlaying(false)}
+                  onPlay={() => setIsPlaying(true)}
                 />
               ) : (
                 <Flex h="100%" align="center" justify="center">
@@ -142,20 +157,20 @@ function App() {
             </Box>
             <HStack gap={4} justify="center">
               <Button as="label" cursor="pointer" colorPalette="brand">
-                Import SRT
-                <input
-                  type="file"
-                  accept=".srt"
-                  onChange={handleSrtImport}
-                  style={{ display: 'none' }}
-                />
-              </Button>
-              <Button as="label" cursor="pointer" colorPalette="brand">
                 Import Video
                 <input
                   type="file"
                   accept="video/*"
                   onChange={handleVideoImport}
+                  style={{ display: 'none' }}
+                />
+              </Button>
+              <Button as="label" cursor="pointer" colorPalette="brand">
+                Import SRT
+                <input
+                  type="file"
+                  accept=".srt"
+                  onChange={handleSrtImport}
                   style={{ display: 'none' }}
                 />
               </Button>
@@ -170,18 +185,7 @@ function App() {
             borderRadius="lg"
             p={4}
             overflowY="auto"
-            css={{
-              '&::-webkit-scrollbar': {
-                width: '4px',
-              },
-              '&::-webkit-scrollbar-track': {
-                width: '6px',
-              },
-              '&::-webkit-scrollbar-thumb': {
-                backgroundColor: 'var(--chakra-colors-gray-300)',
-                borderRadius: '24px',
-              },
-            }}
+            h="calc(100vh - 4rem)"
             onScroll={handleScroll}
           >
             {subtitles.map((subtitle) => (
@@ -200,9 +204,18 @@ function App() {
                 }
                 transition="background-color 0.3s"
               >
-                <Box fontSize="sm" color="gray.500" mb={1}>
-                  {subtitle.startTime} → {subtitle.endTime}
-                </Box>
+                <Flex justify="space-between" align="center">
+                  <Box fontSize="sm" color="gray.500" mb={1}>
+                    {subtitle.startTime} → {subtitle.endTime}
+                  </Box>
+                  <Button
+                    size="xs"
+                    variant="ghost"
+                    onClick={() => handleSeek(subtitle.startTime)}
+                  >
+                    ⏱
+                  </Button>
+                </Flex>
                 {subtitle.text}
               </Box>
             ))}
