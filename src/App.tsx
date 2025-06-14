@@ -2,6 +2,8 @@ import { Box, Button, Container, Flex, HStack, VStack } from "@chakra-ui/react";
 import { useGetState } from "ahooks";
 import { useEffect, useRef, useState } from "react";
 import ReactPlayer from "react-player";
+import { useNavigate, useLocation, BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import * as LZString from "lz-string";
 
 interface Subtitle {
   id: number;
@@ -33,7 +35,9 @@ function parseSRT(srtContent: string): Subtitle[] {
   return subtitles;
 }
 
-function App() {
+function AppContent() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [subtitles, setSubtitles] = useState<Subtitle[]>([]);
   const [currentTime, setCurrentTime] = useState(0);
@@ -43,6 +47,22 @@ function App() {
   const subtitlesContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<ReactPlayer>(null);
 
+  // Load subtitles from URL on mount
+  useEffect(() => {
+    const hash = location.hash.slice(1); // Remove the # symbol
+    if (hash) {
+      try {
+        const decompressedSubtitles = LZString.decompressFromEncodedURIComponent(hash);
+        if (decompressedSubtitles) {
+          const parsedSubtitles = parseSRT(decompressedSubtitles);
+          setSubtitles(parsedSubtitles);
+        }
+      } catch (error) {
+        console.error('Failed to decompress subtitles from URL:', error);
+      }
+    }
+  }, [location.hash]);
+
   const handleVideoImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -51,12 +71,40 @@ function App() {
     }
   };
 
+  const updateSubtitlesUrl = (srtContent: string) => {
+    if (srtContent === "") {
+      navigate("/");
+      return;
+    }
+    // Compress full content for hash
+    const compressed = LZString.compressToEncodedURIComponent(srtContent);
+
+    // Use first 20 chars for path
+    const truncatedContent = srtContent.slice(0, 20);
+    const pathContent = LZString.compressToEncodedURIComponent(
+      truncatedContent
+    ).replace(/[^a-zA-Z]/g, "");
+    navigate(`/${pathContent}#${compressed}`);
+  };
+
   const handleSrtImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const text = await file.text();
       const parsedSubtitles = parseSRT(text);
       setSubtitles(parsedSubtitles);
+      updateSubtitlesUrl(text);
+    }
+  };
+
+  const handleSrtPaste = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      const parsedSubtitles = parseSRT(text);
+      setSubtitles(parsedSubtitles);
+      updateSubtitlesUrl(text);
+    } catch (error) {
+      console.error('Failed to read clipboard:', error);
     }
   };
 
@@ -174,6 +222,9 @@ function App() {
                   style={{ display: 'none' }}
                 />
               </Button>
+              <Button onClick={handleSrtPaste} colorPalette="brand">
+                Paste SRT
+              </Button>
             </HStack>
           </VStack>
         </Box>
@@ -223,6 +274,16 @@ function App() {
         </Box>
       </Flex>
     </Container>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/*" element={<AppContent />} />
+      </Routes>
+    </Router>
   );
 }
 

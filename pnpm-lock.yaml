@@ -26,6 +26,9 @@ importers:
       framer-motion:
         specifier: ^12.18.1
         version: 12.18.1(@emotion/is-prop-valid@1.3.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      lz-string:
+        specifier: ^1.5.0
+        version: 1.5.0
       react:
         specifier: ^19.1.0
         version: 19.1.0
@@ -35,6 +38,9 @@ importers:
       react-player:
         specifier: ^2.16.0
         version: 2.16.0(react@19.1.0)
+      react-router-dom:
+        specifier: ^7.6.2
+        version: 7.6.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
     devDependencies:
       '@biomejs/biome':
         specifier: 1.9.4
@@ -840,6 +846,10 @@ packages:
   convert-source-map@1.9.0:
     resolution: {integrity: sha512-ASFBup0Mz1uyiIjANan1jzLQami9z1PoYSZCiiYW2FczPbenXc45FZdBZLzOT+r6+iciuEModtmCti+hjaAk0A==}
 
+  cookie@1.0.2:
+    resolution: {integrity: sha512-9Kr/j4O16ISv8zBBhJoi4bXOYNTkFLOqSL3UDB0njXxCXNezjeyVrJyGOWtgfs/q2km1gwBcfH8q1yEGoMYunA==}
+    engines: {node: '>=18'}
+
   cosmiconfig@7.1.0:
     resolution: {integrity: sha512-AdmX6xUzdNASswsFtmwSt7Vj8po9IuqXm0UXz7QKPuEUmPB4XyjGfaAr2PSuELMwkRMVH1EpIkX5bTZGRB3eCA==}
     engines: {node: '>=10'}
@@ -968,6 +978,10 @@ packages:
     resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
     hasBin: true
 
+  lz-string@1.5.0:
+    resolution: {integrity: sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ==}
+    hasBin: true
+
   memoize-one@5.2.1:
     resolution: {integrity: sha512-zYiwtZUcYyXKo/np96AGZAckk+FWWsUdJ3cHGGmld7+AhvcWmQyGCYUh1hc4Q/pkOhb65dQR/pqCyK0cOaHz4Q==}
 
@@ -1043,6 +1057,23 @@ packages:
     peerDependencies:
       react: '>=16.6.0'
 
+  react-router-dom@7.6.2:
+    resolution: {integrity: sha512-Q8zb6VlTbdYKK5JJBLQEN06oTUa/RAbG/oQS1auK1I0TbJOXktqm+QENEVJU6QvWynlXPRBXI3fiOQcSEA78rA==}
+    engines: {node: '>=20.0.0'}
+    peerDependencies:
+      react: '>=18'
+      react-dom: '>=18'
+
+  react-router@7.6.2:
+    resolution: {integrity: sha512-U7Nv3y+bMimgWjhlT5CRdzHPu2/KVmqPwKUCChW8en5P3znxUqwlYFlbmyj8Rgp1SF6zs5X4+77kBVknkg6a0w==}
+    engines: {node: '>=20.0.0'}
+    peerDependencies:
+      react: '>=18'
+      react-dom: '>=18'
+    peerDependenciesMeta:
+      react-dom:
+        optional: true
+
   react@19.1.0:
     resolution: {integrity: sha512-FS+XFBNvn3GTAWq26joslQgWNoFu08F4kl0J4CgdNKADkdSGXQyTCnKteIAJy96Br6YbpEU1LSzV5dYtjMkMDg==}
     engines: {node: '>=0.10.0'}
@@ -1070,6 +1101,9 @@ packages:
   screenfull@5.2.0:
     resolution: {integrity: sha512-9BakfsO2aUQN2K9Fdbj87RJIEZ82Q9IGim7FqM5OsebfoFC6ZHXgDq/KvniuLTPdeM8wY2o6Dj3WQ7KeQCj3cA==}
     engines: {node: '>=0.10.0'}
+
+  set-cookie-parser@2.7.1:
+    resolution: {integrity: sha512-IOc8uWeOZgnb3ptbCURJWNjWUPcO3ZnTTdzsurqERrP6nPyv+paC55vJM0LpOlT2ne+Ix+9+CRG1MNLlyZ4GjQ==}
 
   source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
@@ -2175,6 +2209,8 @@ snapshots:
 
   convert-source-map@1.9.0: {}
 
+  cookie@1.0.2: {}
+
   cosmiconfig@7.1.0:
     dependencies:
       '@types/parse-json': 4.0.2
@@ -2293,6 +2329,8 @@ snapshots:
     dependencies:
       js-tokens: 4.0.0
 
+  lz-string@1.5.0: {}
+
   memoize-one@5.2.1: {}
 
   motion-dom@12.18.1:
@@ -2364,6 +2402,20 @@ snapshots:
       react: 19.1.0
       react-fast-compare: 3.2.2
 
+  react-router-dom@7.6.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
+    dependencies:
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
+      react-router: 7.6.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+
+  react-router@7.6.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
+    dependencies:
+      cookie: 1.0.2
+      react: 19.1.0
+      set-cookie-parser: 2.7.1
+    optionalDependencies:
+      react-dom: 19.1.0(react@19.1.0)
+
   react@19.1.0: {}
 
   resize-observer-polyfill@1.5.1: {}
@@ -2405,6 +2457,8 @@ snapshots:
   scheduler@0.26.0: {}
 
   screenfull@5.2.0: {}
+
+  set-cookie-parser@2.7.1: {}
 
   source-map-js@1.2.1: {}
 
