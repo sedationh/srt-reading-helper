@@ -1,5 +1,5 @@
 import { Box, Button, Container, Flex, HStack, VStack } from "@chakra-ui/react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ReactPlayer from "react-player";
 
 interface Subtitle {
@@ -36,6 +36,9 @@ function App() {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [subtitles, setSubtitles] = useState<Subtitle[]>([]);
   const [currentTime, setCurrentTime] = useState(0);
+  const [isUserScrolling, setIsUserScrolling] = useState(false);
+  const [scrollTimeout, setScrollTimeout] = useState<number | null>(null);
+  const subtitlesContainerRef = useRef<HTMLDivElement>(null);
 
   const handleVideoImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -76,6 +79,46 @@ function App() {
         currentTime <= timeToSeconds(subtitle.endTime)
     );
   };
+
+  // Handle user scrolling
+  const handleScroll = () => {
+    setIsUserScrolling(true);
+    
+    // Clear existing timeout
+    if (scrollTimeout) {
+      window.clearTimeout(scrollTimeout);
+    }
+    
+    // Set new timeout
+    const timeout = window.setTimeout(() => {
+      setIsUserScrolling(false);
+    }, 1000); // Reset after 1 second of no scrolling
+    
+    setScrollTimeout(timeout);
+  };
+
+  // Auto-scroll to current subtitle
+  useEffect(() => {
+    const currentSubs = getCurrentSubtitles();
+    if (currentSubs.length > 0 && !isUserScrolling && subtitlesContainerRef.current) {
+      const currentSubElement = document.getElementById(`subtitle-${currentSubs[0].id}`);
+      if (currentSubElement) {
+        currentSubElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
+      }
+    }
+  }, [currentTime, isUserScrolling]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (scrollTimeout) {
+        window.clearTimeout(scrollTimeout);
+      }
+    };
+  }, [scrollTimeout]);
 
   return (
     <Container maxW="container.xl" py={8}>
@@ -119,15 +162,30 @@ function App() {
         </VStack>
 
         <Box
+          ref={subtitlesContainerRef}
           flex={1}
           borderWidth={1}
           borderRadius="lg"
           p={4}
           overflowY="auto"
           h="100%"
+          onScroll={handleScroll}
+          css={{
+            '&::-webkit-scrollbar': {
+              width: '4px',
+            },
+            '&::-webkit-scrollbar-track': {
+              width: '6px',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              backgroundColor: 'var(--chakra-colors-gray-300)',
+              borderRadius: '24px',
+            },
+          }}
         >
           {subtitles.map((subtitle) => (
             <Box
+              id={`subtitle-${subtitle.id}`}
               key={subtitle.id}
               mb={4}
               p={2}
@@ -139,6 +197,7 @@ function App() {
                   ? 'brand.100'
                   : 'transparent'
               }
+              transition="background-color 0.3s"
             >
               <Box fontSize="sm" color="gray.500" mb={1}>
                 {subtitle.startTime} → {subtitle.endTime}
