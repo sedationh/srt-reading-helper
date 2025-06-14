@@ -2,6 +2,9 @@
 
 A web application built with React and Vite to help users read and manage SRT subtitle files.
 
+![image](https://github.com/user-attachments/assets/008ee398-9f16-4ed2-af63-43463060f77d)
+
+
 ## Features
 
 - Modern React (v19) with TypeScript
