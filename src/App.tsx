@@ -122,89 +122,91 @@ function App() {
 
   return (
     <Container maxW="container.xl" py={8}>
-      <Flex gap={6} h="80vh">
-        <VStack flex={1} gap={4} align="stretch">
-          <Box flex={1} borderWidth={1} borderRadius="lg" overflow="hidden" bg="gray.100">
-            {videoUrl ? (
-              <ReactPlayer
-                url={videoUrl}
-                width="100%"
-                height="100%"
-                controls
-                onProgress={handleProgress}
-              />
-            ) : (
-              <Flex h="100%" align="center" justify="center">
-                No video selected
-              </Flex>
-            )}
-          </Box>
-          <HStack gap={4} justify="center">
-            <Button as="label" cursor="pointer" colorPalette="brand">
-              Import SRT
-              <input
-                type="file"
-                accept=".srt"
-                onChange={handleSrtImport}
-                style={{ display: 'none' }}
-              />
-            </Button>
-            <Button as="label" cursor="pointer" colorPalette="brand">
-              Import Video
-              <input
-                type="file"
-                accept="video/*"
-                onChange={handleVideoImport}
-                style={{ display: 'none' }}
-              />
-            </Button>
-          </HStack>
-        </VStack>
-
-        <Box
-          ref={subtitlesContainerRef}
-          flex={1}
-          borderWidth={1}
-          borderRadius="lg"
-          p={4}
-          overflowY="auto"
-          h="100%"
-          onScroll={handleScroll}
-          css={{
-            '&::-webkit-scrollbar': {
-              width: '4px',
-            },
-            '&::-webkit-scrollbar-track': {
-              width: '6px',
-            },
-            '&::-webkit-scrollbar-thumb': {
-              backgroundColor: 'var(--chakra-colors-gray-300)',
-              borderRadius: '24px',
-            },
-          }}
-        >
-          {subtitles.map((subtitle) => (
-            <Box
-              id={`subtitle-${subtitle.id}`}
-              key={subtitle.id}
-              mb={4}
-              p={2}
-              borderWidth={1}
-              borderRadius="md"
-              bg={
-                currentTime >= timeToSeconds(subtitle.startTime) &&
-                currentTime <= timeToSeconds(subtitle.endTime)
-                  ? 'brand.100'
-                  : 'transparent'
-              }
-              transition="background-color 0.3s"
-            >
-              <Box fontSize="sm" color="gray.500" mb={1}>
-                {subtitle.startTime} → {subtitle.endTime}
-              </Box>
-              {subtitle.text}
+      <Flex gap={6}>
+        <Box w="600px" position="fixed" top="2rem">
+          <VStack gap={4} align="stretch" h="80vh">
+            <Box flex={1} borderWidth={1} borderRadius="lg" overflow="hidden" bg="gray.100">
+              {videoUrl ? (
+                <ReactPlayer
+                  url={videoUrl}
+                  width="100%"
+                  height="100%"
+                  controls
+                  onProgress={handleProgress}
+                />
+              ) : (
+                <Flex h="100%" align="center" justify="center">
+                  No video selected
+                </Flex>
+              )}
             </Box>
-          ))}
+            <HStack gap={4} justify="center">
+              <Button as="label" cursor="pointer" colorPalette="brand">
+                Import SRT
+                <input
+                  type="file"
+                  accept=".srt"
+                  onChange={handleSrtImport}
+                  style={{ display: 'none' }}
+                />
+              </Button>
+              <Button as="label" cursor="pointer" colorPalette="brand">
+                Import Video
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={handleVideoImport}
+                  style={{ display: 'none' }}
+                />
+              </Button>
+            </HStack>
+          </VStack>
+        </Box>
+
+        <Box flex={1} ml="calc(600px + 1.5rem)">
+          <Box
+            ref={subtitlesContainerRef}
+            borderWidth={1}
+            borderRadius="lg"
+            p={4}
+            overflowY="auto"
+            css={{
+              '&::-webkit-scrollbar': {
+                width: '4px',
+              },
+              '&::-webkit-scrollbar-track': {
+                width: '6px',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                backgroundColor: 'var(--chakra-colors-gray-300)',
+                borderRadius: '24px',
+              },
+            }}
+            onScroll={handleScroll}
+          >
+            {subtitles.map((subtitle) => (
+              <Box
+                id={`subtitle-${subtitle.id}`}
+                key={subtitle.id}
+                mb={4}
+                p={2}
+                borderWidth={1}
+                borderRadius="md"
+                bg={
+                  currentTime >= timeToSeconds(subtitle.startTime) &&
+                  currentTime <= timeToSeconds(subtitle.endTime)
+                    ? 'brand.100'
+                    : 'transparent'
+                }
+                transition="background-color 0.3s"
+              >
+                <Box fontSize="sm" color="gray.500" mb={1}>
+                  {subtitle.startTime} → {subtitle.endTime}
+                </Box>
+                {subtitle.text}
+              </Box>
+            ))}
+          </Box>
         </Box>
       </Flex>
     </Container>
