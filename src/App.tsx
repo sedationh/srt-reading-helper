@@ -1,8 +1,22 @@
-import { Box, Button, Container, Flex, HStack, VStack } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Container,
+  Flex,
+  HStack,
+  VStack,
+  Icon,
+} from "@chakra-ui/react";
 import { useGetState } from "ahooks";
 import { useEffect, useRef, useState } from "react";
 import ReactPlayer from "react-player";
-import { useNavigate, useLocation, BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  useNavigate,
+  useLocation,
+  BrowserRouter as Router,
+  Routes,
+  Route,
+} from "react-router-dom";
 import * as LZString from "lz-string";
 
 interface Subtitle {
@@ -14,15 +28,15 @@ interface Subtitle {
 
 function parseSRT(srtContent: string): Subtitle[] {
   const subtitles: Subtitle[] = [];
-  const blocks = srtContent.trim().split('\n\n');
+  const blocks = srtContent.trim().split("\n\n");
 
   blocks.forEach((block) => {
-    const lines = block.split('\n');
+    const lines = block.split("\n");
     if (lines.length >= 3) {
       const id = parseInt(lines[0]);
-      const [startTime, endTime] = lines[1].split(' --> ');
-      const text = lines.slice(2).join('\n');
-      
+      const [startTime, endTime] = lines[1].split(" --> ");
+      const text = lines.slice(2).join("\n");
+
       subtitles.push({
         id,
         startTime,
@@ -52,13 +66,14 @@ function AppContent() {
     const hash = location.hash.slice(1); // Remove the # symbol
     if (hash) {
       try {
-        const decompressedSubtitles = LZString.decompressFromEncodedURIComponent(hash);
+        const decompressedSubtitles =
+          LZString.decompressFromEncodedURIComponent(hash);
         if (decompressedSubtitles) {
           const parsedSubtitles = parseSRT(decompressedSubtitles);
           setSubtitles(parsedSubtitles);
         }
       } catch (error) {
-        console.error('Failed to decompress subtitles from URL:', error);
+        console.error("Failed to decompress subtitles from URL:", error);
       }
     }
   }, [location.hash]);
@@ -104,13 +119,13 @@ function AppContent() {
       setSubtitles(parsedSubtitles);
       updateSubtitlesUrl(text);
     } catch (error) {
-      console.error('Failed to read clipboard:', error);
+      console.error("Failed to read clipboard:", error);
     }
   };
 
   const timeToSeconds = (timeStr: string): number => {
-    const [hours, minutes, seconds] = timeStr.split(':');
-    const [secs, ms] = seconds.split(',');
+    const [hours, minutes, seconds] = timeStr.split(":");
+    const [secs, ms] = seconds.split(",");
     return (
       parseInt(hours) * 3600 +
       parseInt(minutes) * 60 +
@@ -134,29 +149,36 @@ function AppContent() {
   // Handle user scrolling
   const handleScroll = () => {
     setIsUserScrolling(true);
-    
+
     // Clear existing timeout
     if (scrollTimeoutRef.current) {
       window.clearTimeout(scrollTimeoutRef.current);
     }
-    
+
     // Set new timeout
     const timeout = window.setTimeout(() => {
       setIsUserScrolling(false);
     }, 1000); // Reset after 1 second of no scrolling
-    
+
     scrollTimeoutRef.current = timeout;
   };
 
   // Auto-scroll to current subtitle
   useEffect(() => {
     const currentSubs = getCurrentSubtitles();
-    if (currentSubs.length > 0 && !isUserScrolling && subtitlesContainerRef.current && isPlaying) {
-      const currentSubElement = document.getElementById(`subtitle-${currentSubs[0].id}`);
+    if (
+      currentSubs.length > 0 &&
+      !isUserScrolling &&
+      subtitlesContainerRef.current &&
+      isPlaying
+    ) {
+      const currentSubElement = document.getElementById(
+        `subtitle-${currentSubs[0].id}`
+      );
       if (currentSubElement) {
         currentSubElement.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center',
+          behavior: "smooth",
+          block: "center",
         });
       }
     }
@@ -174,17 +196,71 @@ function AppContent() {
   const handleSeek = (timeStr: string) => {
     const seconds = timeToSeconds(timeStr);
     if (playerRef.current) {
-      playerRef.current.seekTo(seconds, 'seconds');
+      playerRef.current.seekTo(seconds, "seconds");
       setIsPlaying(true);
     }
   };
+
+  // Get current subtitle index
+  const getCurrentSubtitleIndex = () => {
+    return subtitles.findIndex(
+      (subtitle) =>
+        currentTime >= timeToSeconds(subtitle.startTime) &&
+        currentTime <= timeToSeconds(subtitle.endTime)
+    );
+  };
+
+  // Handle keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Check if Cmd (Meta) key is pressed
+      if (e.metaKey) {
+        const currentIndex = getCurrentSubtitleIndex();
+
+        switch (e.key) {
+          case "ArrowUp":
+            e.preventDefault();
+            if (currentIndex > 0) {
+              handleSeek(subtitles[currentIndex - 1].startTime);
+            }
+            break;
+          case "ArrowDown":
+            e.preventDefault();
+            if (currentIndex < subtitles.length - 1) {
+              handleSeek(subtitles[currentIndex + 1].startTime);
+            }
+            break;
+          case "r":
+            e.preventDefault();
+            const currentSubs = getCurrentSubtitles();
+            if (currentSubs.length > 0) {
+              handleSeek(currentSubs[0].startTime);
+            }
+            break;
+          case "Enter":
+            e.preventDefault();
+            setIsPlaying(!isPlaying);
+            break;
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [subtitles, currentTime, isPlaying]);
 
   return (
     <Container maxW="container.xl" py={8}>
       <Flex gap={6}>
         <Box w="600px" position="fixed" top="2rem">
           <VStack gap={4} align="stretch" h="80vh">
-            <Box flex={1} borderWidth={1} borderRadius="lg" overflow="hidden" bg="gray.100">
+            <Box
+              flex={1}
+              borderWidth={1}
+              borderRadius="lg"
+              overflow="hidden"
+              bg="gray.100"
+            >
               {videoUrl ? (
                 <ReactPlayer
                   ref={playerRef}
@@ -210,7 +286,7 @@ function AppContent() {
                   type="file"
                   accept="video/*"
                   onChange={handleVideoImport}
-                  style={{ display: 'none' }}
+                  style={{ display: "none" }}
                 />
               </Button>
               <Button as="label" cursor="pointer" colorPalette="brand">
@@ -219,7 +295,7 @@ function AppContent() {
                   type="file"
                   accept=".srt"
                   onChange={handleSrtImport}
-                  style={{ display: 'none' }}
+                  style={{ display: "none" }}
                 />
               </Button>
               <Button onClick={handleSrtPaste} colorPalette="brand">
@@ -238,38 +314,58 @@ function AppContent() {
             overflowY="auto"
             h="calc(100vh - 4rem)"
             onScroll={handleScroll}
+            bg="white"
+            shadow="sm"
           >
-            {subtitles.map((subtitle) => (
-              <Box
-                id={`subtitle-${subtitle.id}`}
-                key={subtitle.id}
-                mb={4}
-                p={2}
-                borderWidth={1}
-                borderRadius="md"
-                bg={
-                  currentTime >= timeToSeconds(subtitle.startTime) &&
-                  currentTime <= timeToSeconds(subtitle.endTime)
-                    ? 'brand.100'
-                    : 'transparent'
-                }
-                transition="background-color 0.3s"
-              >
-                <Flex justify="space-between" align="center">
-                  <Box fontSize="sm" color="gray.500" mb={1}>
-                    {subtitle.startTime} → {subtitle.endTime}
-                  </Box>
-                  <Button
-                    size="xs"
-                    variant="ghost"
-                    onClick={() => handleSeek(subtitle.startTime)}
+            {subtitles.map((subtitle) => {
+              const isCurrentSubtitle =
+                currentTime >= timeToSeconds(subtitle.startTime) &&
+                currentTime <= timeToSeconds(subtitle.endTime);
+
+              return (
+                <Box
+                  id={`subtitle-${subtitle.id}`}
+                  key={subtitle.id}
+                  mb={2}
+                  p={3}
+                  borderWidth={1}
+                  borderRadius="md"
+                  bg={isCurrentSubtitle ? "blue.50" : "white"}
+                  borderColor={isCurrentSubtitle ? "blue.100" : "gray.200"}
+                >
+                  <Flex justify="space-between" align="center" mb={1.5}>
+                    <Button
+                      size="xs"
+                      variant="ghost"
+                      colorScheme={isCurrentSubtitle ? "blue" : "gray"}
+                      onClick={() => handleSeek(subtitle.startTime)}
+                      height="24px"
+                      minWidth="60px"
+                      padding="0 8px"
+                      _hover={{
+                        bg: "orange.100",
+                        color: "orange.700",
+                      }}
+                    >
+                      <Icon as={() => <span>⏱</span>} mr={1} fontSize="14px" />
+                      播放
+                    </Button>
+                    <Box
+                      fontSize="xs"
+                      color={isCurrentSubtitle ? "blue.600" : "gray.500"}
+                    >
+                      {subtitle.startTime} → {subtitle.endTime}
+                    </Box>
+                  </Flex>
+                  <Box
+                    fontSize="md"
+                    color={isCurrentSubtitle ? "blue.800" : "gray.700"}
                   >
-                    ⏱
-                  </Button>
-                </Flex>
-                {subtitle.text}
-              </Box>
-            ))}
+                    {subtitle.text}
+                  </Box>
+                </Box>
+              );
+            })}
           </Box>
         </Box>
       </Flex>
