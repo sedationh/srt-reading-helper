@@ -6,166 +6,167 @@ import {
   HStack,
   VStack,
   Icon,
-} from "@chakra-ui/react";
-import { useGetState } from "ahooks";
-import { useEffect, useRef, useState } from "react";
-import ReactPlayer from "react-player";
+} from "@chakra-ui/react"
+import { useGetState } from "ahooks"
+import { useEffect, useRef, useState } from "react"
+import ReactPlayer from "react-player"
 import {
   useNavigate,
   useLocation,
   BrowserRouter as Router,
   Routes,
   Route,
-} from "react-router-dom";
-import * as LZString from "lz-string";
+} from "react-router-dom"
+import * as LZString from "lz-string"
 
 interface Subtitle {
-  id: number;
-  startTime: string;
-  endTime: string;
-  text: string;
+  id: number
+  startTime: string
+  endTime: string
+  text: string
 }
 
 function parseSRT(srtContent: string): Subtitle[] {
-  const subtitles: Subtitle[] = [];
-  const blocks = srtContent.trim().split("\n\n");
+  const subtitles: Subtitle[] = []
+  const blocks = srtContent.trim().split("\n\n")
 
-  blocks.forEach((block) => {
-    const lines = block.split("\n");
+  for (const block of blocks) {
+    const lines = block.split("\n")
     if (lines.length >= 3) {
-      const id = parseInt(lines[0]);
-      const [startTime, endTime] = lines[1].split(" --> ");
-      const text = lines.slice(2).join("\n");
+      const id = Number.parseInt(lines[0])
+      const [startTime, endTime] = lines[1].split(" --> ")
+      const text = lines.slice(2).join("\n")
 
       subtitles.push({
         id,
         startTime,
         endTime,
         text,
-      });
+      })
     }
-  });
+  }
 
-  return subtitles;
+  return subtitles
 }
 
 function AppContent() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  const [subtitles, setSubtitles] = useState<Subtitle[]>([]);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [isUserScrolling, setIsUserScrolling] = useGetState(false);
-  const scrollTimeoutRef = useRef<number | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const subtitlesContainerRef = useRef<HTMLDivElement>(null);
-  const playerRef = useRef<ReactPlayer>(null);
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [videoUrl, setVideoUrl] = useState<string | null>(null)
+  const [subtitles, setSubtitles] = useState<Subtitle[]>([])
+  const [currentTime, setCurrentTime] = useState(0)
+  const [isUserScrolling, setIsUserScrolling] = useGetState(false)
+  const scrollTimeoutRef = useRef<number | null>(null)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const subtitlesContainerRef = useRef<HTMLDivElement>(null)
+  const playerRef = useRef<ReactPlayer>(null)
 
   // Load subtitles from URL on mount
   useEffect(() => {
-    const hash = location.hash.slice(1); // Remove the # symbol
+    const hash = location.hash.slice(1) // Remove the # symbol
     if (hash) {
       try {
         const decompressedSubtitles =
-          LZString.decompressFromEncodedURIComponent(hash);
+          LZString.decompressFromEncodedURIComponent(hash)
         if (decompressedSubtitles) {
-          const parsedSubtitles = parseSRT(decompressedSubtitles);
-          setSubtitles(parsedSubtitles);
+          const parsedSubtitles = parseSRT(decompressedSubtitles)
+          setSubtitles(parsedSubtitles)
         }
       } catch (error) {
-        console.error("Failed to decompress subtitles from URL:", error);
+        console.error("Failed to decompress subtitles from URL:", error)
       }
     }
-  }, [location.hash]);
+  }, [location.hash])
 
   const handleVideoImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const file = e.target.files?.[0]
     if (file) {
-      const url = URL.createObjectURL(file);
-      setVideoUrl(url);
+      const url = URL.createObjectURL(file)
+      setVideoUrl(url)
     }
-  };
+  }
 
   const updateSubtitlesUrl = (srtContent: string) => {
     if (srtContent === "") {
-      navigate("/");
-      return;
+      navigate("/")
+      return
     }
     // Compress full content for hash
-    const compressed = LZString.compressToEncodedURIComponent(srtContent);
+    const compressed = LZString.compressToEncodedURIComponent(srtContent)
 
     // Use first 20 chars for path
-    const truncatedContent = srtContent.slice(0, 20);
+    const truncatedContent = srtContent.slice(0, 20)
     const pathContent = LZString.compressToEncodedURIComponent(
-      truncatedContent
-    ).replace(/[^a-zA-Z]/g, "");
-    navigate(`/${pathContent}#${compressed}`);
-  };
+      truncatedContent,
+    ).replace(/[^a-zA-Z]/g, "")
+    navigate(`/${pathContent}#${compressed}`)
+  }
 
   const handleSrtImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const file = e.target.files?.[0]
     if (file) {
-      const text = await file.text();
-      const parsedSubtitles = parseSRT(text);
-      setSubtitles(parsedSubtitles);
-      updateSubtitlesUrl(text);
+      const text = await file.text()
+      const parsedSubtitles = parseSRT(text)
+      setSubtitles(parsedSubtitles)
+      updateSubtitlesUrl(text)
     }
-  };
+  }
 
   const handleSrtPaste = async () => {
     try {
-      const text = await navigator.clipboard.readText();
-      const parsedSubtitles = parseSRT(text);
-      setSubtitles(parsedSubtitles);
-      updateSubtitlesUrl(text);
+      const text = await navigator.clipboard.readText()
+      const parsedSubtitles = parseSRT(text)
+      setSubtitles(parsedSubtitles)
+      updateSubtitlesUrl(text)
     } catch (error) {
-      console.error("Failed to read clipboard:", error);
+      console.error("Failed to read clipboard:", error)
     }
-  };
+  }
 
   const timeToSeconds = (timeStr: string): number => {
-    const [hours, minutes, seconds] = timeStr.split(":");
-    const [secs, ms] = seconds.split(",");
+    const [hours, minutes, seconds] = timeStr.split(":")
+    const [secs, ms] = seconds.split(",")
     return (
-      parseInt(hours) * 3600 +
-      parseInt(minutes) * 60 +
-      parseInt(secs) +
-      parseInt(ms) / 1000
-    );
-  };
+      Number.parseInt(hours) * 3600 +
+      Number.parseInt(minutes) * 60 +
+      Number.parseInt(secs) +
+      Number.parseInt(ms) / 1000
+    )
+  }
 
   const handleProgress = (state: { playedSeconds: number }) => {
-    setCurrentTime(state.playedSeconds);
-  };
+    setCurrentTime(state.playedSeconds)
+  }
 
   const getCurrentSubtitles = () => {
     return subtitles.filter(
       (subtitle) =>
         currentTime >= timeToSeconds(subtitle.startTime) &&
-        currentTime <= timeToSeconds(subtitle.endTime)
-    );
-  };
+        currentTime <= timeToSeconds(subtitle.endTime),
+    )
+  }
 
   // Handle user scrolling
   const handleScroll = () => {
-    setIsUserScrolling(true);
+    setIsUserScrolling(true)
 
     // Clear existing timeout
     if (scrollTimeoutRef.current) {
-      window.clearTimeout(scrollTimeoutRef.current);
+      window.clearTimeout(scrollTimeoutRef.current)
     }
 
     // Set new timeout
     const timeout = window.setTimeout(() => {
-      setIsUserScrolling(false);
-    }, 1000); // Reset after 1 second of no scrolling
+      setIsUserScrolling(false)
+    }, 1000) // Reset after 1 second of no scrolling
 
-    scrollTimeoutRef.current = timeout;
-  };
+    scrollTimeoutRef.current = timeout
+  }
 
   // Auto-scroll to current subtitle
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
-    const currentSubs = getCurrentSubtitles();
+    const currentSubs = getCurrentSubtitles()
     if (
       currentSubs.length > 0 &&
       !isUserScrolling &&
@@ -173,81 +174,83 @@ function AppContent() {
       isPlaying
     ) {
       const currentSubElement = document.getElementById(
-        `subtitle-${currentSubs[0].id}`
-      );
+        `subtitle-${currentSubs[0].id}`,
+      )
       if (currentSubElement) {
         currentSubElement.scrollIntoView({
           behavior: "smooth",
           block: "center",
-        });
+        })
       }
     }
-  }, [currentTime, isUserScrolling]);
+  }, [currentTime, isUserScrolling])
 
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (scrollTimeoutRef.current) {
-        window.clearTimeout(scrollTimeoutRef.current);
+        window.clearTimeout(scrollTimeoutRef.current)
       }
-    };
-  }, []);
+    }
+  }, [])
 
   const handleSeek = (timeStr: string) => {
-    const seconds = timeToSeconds(timeStr);
+    const seconds = timeToSeconds(timeStr)
     if (playerRef.current) {
-      playerRef.current.seekTo(seconds, "seconds");
-      setIsPlaying(true);
+      playerRef.current.seekTo(seconds, "seconds")
+      setIsPlaying(true)
     }
-  };
+  }
 
   // Get current subtitle index
   const getCurrentSubtitleIndex = () => {
     return subtitles.findIndex(
       (subtitle) =>
         currentTime >= timeToSeconds(subtitle.startTime) &&
-        currentTime <= timeToSeconds(subtitle.endTime)
-    );
-  };
+        currentTime <= timeToSeconds(subtitle.endTime),
+    )
+  }
 
   // Handle keyboard shortcuts
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Check if Cmd (Meta) key is pressed
       if (e.metaKey) {
-        const currentIndex = getCurrentSubtitleIndex();
+        const currentIndex = getCurrentSubtitleIndex()
 
         switch (e.key) {
           case "ArrowUp":
-            e.preventDefault();
+            e.preventDefault()
             if (currentIndex > 0) {
-              handleSeek(subtitles[currentIndex - 1].startTime);
+              handleSeek(subtitles[currentIndex - 1].startTime)
             }
-            break;
+            break
           case "ArrowDown":
-            e.preventDefault();
+            e.preventDefault()
             if (currentIndex < subtitles.length - 1) {
-              handleSeek(subtitles[currentIndex + 1].startTime);
+              handleSeek(subtitles[currentIndex + 1].startTime)
             }
-            break;
-          case "r":
-            e.preventDefault();
-            const currentSubs = getCurrentSubtitles();
+            break
+          case "r": {
+            e.preventDefault()
+            const currentSubs = getCurrentSubtitles()
             if (currentSubs.length > 0) {
-              handleSeek(currentSubs[0].startTime);
+              handleSeek(currentSubs[0].startTime)
             }
-            break;
+            break
+          }
           case "Enter":
-            e.preventDefault();
-            setIsPlaying(!isPlaying);
-            break;
+            e.preventDefault()
+            setIsPlaying(!isPlaying)
+            break
         }
       }
-    };
+    }
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [subtitles, currentTime, isPlaying]);
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [subtitles, currentTime, isPlaying])
 
   return (
     <Container maxW="container.xl" py={8}>
@@ -320,7 +323,7 @@ function AppContent() {
             {subtitles.map((subtitle) => {
               const isCurrentSubtitle =
                 currentTime >= timeToSeconds(subtitle.startTime) &&
-                currentTime <= timeToSeconds(subtitle.endTime);
+                currentTime <= timeToSeconds(subtitle.endTime)
 
               return (
                 <Box
@@ -364,13 +367,13 @@ function AppContent() {
                     {subtitle.text}
                   </Box>
                 </Box>
-              );
+              )
             })}
           </Box>
         </Box>
       </Flex>
     </Container>
-  );
+  )
 }
 
 function App() {
@@ -380,7 +383,7 @@ function App() {
         <Route path="/*" element={<AppContent />} />
       </Routes>
     </Router>
-  );
+  )
 }
 
-export default App;
+export default App

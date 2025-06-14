@@ -1,7 +1,8 @@
 {
-  "name": "template-vite",
+  "name": "srt-reading-helper",
   "private": true,
   "version": "0.0.0",
+  "description": "A tool to help with reading and managing SRT subtitle files",
   "type": "module",
   "scripts": {
     "dev": "vite",
