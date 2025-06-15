@@ -4,22 +4,21 @@ import {
   Container,
   Flex,
   HStack,
-  VStack,
   Icon,
-  Tooltip,
+  VStack,
 } from "@chakra-ui/react"
-import { FaVideo, FaFileUpload, FaPaste, FaCopy } from "react-icons/fa"
 import { useGetState } from "ahooks"
+import * as LZString from "lz-string"
 import { useEffect, useRef, useState } from "react"
+import { FaCopy, FaFileUpload, FaPaste, FaVideo } from "react-icons/fa"
 import ReactPlayer from "react-player"
 import {
-  useNavigate,
-  useLocation,
+  Route,
   BrowserRouter as Router,
   Routes,
-  Route,
+  useLocation,
+  useNavigate,
 } from "react-router-dom"
-import * as LZString from "lz-string"
 
 interface Subtitle {
   id: number
