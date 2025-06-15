@@ -211,6 +211,11 @@ function AppContent() {
     )
   }
 
+  const handleSrtCopy = () => {
+    const srtContent = subtitles.map((subtitle) => subtitle.text).join("\n")
+    navigator.clipboard.writeText(srtContent)
+  }
+
   // Handle keyboard shortcuts
   // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
@@ -303,6 +308,10 @@ function AppContent() {
               </Button>
               <Button onClick={handleSrtPaste} colorPalette="brand">
                 Paste SRT
+              </Button>
+              {/* Copy SRT to clipboard */}
+              <Button onClick={handleSrtCopy} colorPalette="brand">
+                Copy SRT
               </Button>
             </HStack>
           </VStack>
