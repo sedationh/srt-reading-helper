@@ -11,8 +11,10 @@ import {
 import { useGetState } from "ahooks"
 import { useEffect, useRef, useState } from "react"
 import { FaFileUpload, FaVideo } from "react-icons/fa"
+import { MdEdit } from "react-icons/md"
 import ReactPlayer from "react-player"
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom"
+import { EditSubtitleDialog } from "./components/EditSubtitleDialog"
 
 // IndexedDB utility functions
 const DB_NAME = "srt-reading-helper"
@@ -212,6 +214,10 @@ function AppContent() {
   const [urlState, setUrlState] = useUrlState({
     currentVideoKey: "",
   })
+  const [selectedSubtitle, setSelectedSubtitle] = useState<Subtitle | null>(
+    null,
+  )
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
   const [videos, setVideos] = useState<
     Array<{ key: string; name: string; size: number; type: string }>
@@ -447,6 +453,27 @@ function AppContent() {
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [subtitles, currentTime, isPlaying])
 
+  const handleEditSubtitle = (subtitle: Subtitle) => {
+    setSelectedSubtitle(subtitle)
+    setIsEditDialogOpen(true)
+  }
+
+  const handleSaveSubtitle = async (editedSubtitle: Subtitle) => {
+    if (!urlState.currentVideoKey) return
+
+    const updatedSubtitles = subtitles.map((sub) =>
+      sub.id === editedSubtitle.id ? editedSubtitle : sub,
+    )
+    setSubtitles(updatedSubtitles)
+
+    // Save updated subtitles to IndexedDB
+    try {
+      await saveSubtitles(urlState.currentVideoKey, updatedSubtitles)
+    } catch (error) {
+      console.error("Failed to save edited subtitles:", error)
+    }
+  }
+
   return (
     <Container maxW="container.xl" py={8}>
       <Flex gap={6}>
@@ -641,22 +668,44 @@ function AppContent() {
                   borderColor={isCurrentSubtitle ? "blue.100" : "gray.200"}
                 >
                   <Flex justify="space-between" align="center" mb={1.5}>
-                    <Button
-                      size="xs"
-                      variant="ghost"
-                      colorScheme={isCurrentSubtitle ? "blue" : "gray"}
-                      onClick={() => handleSeek(subtitle.startTime)}
-                      height="24px"
-                      minWidth="60px"
-                      padding="0 8px"
-                      _hover={{
-                        bg: "orange.100",
-                        color: "orange.700",
-                      }}
-                    >
-                      <Icon as={() => <span>⏱</span>} mr={1} fontSize="14px" />
-                      播放
-                    </Button>
+                    <HStack gap={2}>
+                      <Button
+                        size="xs"
+                        variant="ghost"
+                        colorScheme={isCurrentSubtitle ? "blue" : "gray"}
+                        onClick={() => handleSeek(subtitle.startTime)}
+                        height="24px"
+                        minWidth="60px"
+                        padding="0 8px"
+                        _hover={{
+                          bg: "orange.100",
+                          color: "orange.700",
+                        }}
+                      >
+                        <Icon
+                          as={() => <span>⏱</span>}
+                          mr={1}
+                          fontSize="14px"
+                        />
+                        播放
+                      </Button>
+                      <Button
+                        size="xs"
+                        variant="ghost"
+                        colorScheme={isCurrentSubtitle ? "blue" : "gray"}
+                        onClick={() => handleEditSubtitle(subtitle)}
+                        height="24px"
+                        minWidth="60px"
+                        padding="0 8px"
+                        _hover={{
+                          bg: "teal.100",
+                          color: "teal.700",
+                        }}
+                      >
+                        <Icon as={MdEdit} mr={1} fontSize="14px" />
+                        编辑
+                      </Button>
+                    </HStack>
                     <Box
                       fontSize="xs"
                       color={isCurrentSubtitle ? "blue.600" : "gray.500"}
@@ -676,6 +725,19 @@ function AppContent() {
           </Box>
         </Box>
       </Flex>
+      <EditSubtitleDialog
+        isOpen={isEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
+        subtitle={
+          selectedSubtitle ?? {
+            id: 0,
+            startTime: "",
+            endTime: "",
+            text: "",
+          }
+        }
+        onSave={handleSaveSubtitle}
+      />
     </Container>
   )
 }
