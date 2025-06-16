@@ -96,11 +96,8 @@ function AppContent() {
     const compressed = LZString.compressToEncodedURIComponent(srtContent)
 
     // Use first 20 chars for path
-    const truncatedContent = srtContent.slice(0, 20)
-    const pathContent = LZString.compressToEncodedURIComponent(
-      truncatedContent,
-    ).replace(/[^a-zA-Z]/g, "")
-    navigate(`/${pathContent}#${compressed}`)
+    const path = location.pathname
+    navigate(`${path}#${compressed}`)
   }
 
   const handleSrtImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -109,7 +106,12 @@ function AppContent() {
       const text = await file.text()
       const parsedSubtitles = parseSRT(text)
       setSubtitles(parsedSubtitles)
-      updateSubtitlesUrl(text)
+
+      // Get filename without extension
+      const filename = encodeURIComponent(file.name.replace(/\.srt$/, ""))
+      // Compress full content for hash
+      const compressed = LZString.compressToEncodedURIComponent(text)
+      navigate(`/${filename}#${compressed}`)
     }
   }
 
