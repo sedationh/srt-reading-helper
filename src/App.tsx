@@ -369,66 +369,6 @@ function AppContent() {
                 />
               </Button>
             </HStack>
-            <HStack className="notranslate" gap={6} justify="center">
-              <Button
-                flex={1}
-                size="md"
-                variant="outline"
-                borderWidth="1.5px"
-                borderColor="gray.200"
-                color="gray.700"
-                bg="white"
-                px={5}
-                py={6}
-                fontSize="14px"
-                fontWeight="500"
-                borderRadius="xl"
-                onClick={handleSrtPaste}
-                _hover={{
-                  bg: "gray.50",
-                  borderColor: "purple.400",
-                  color: "purple.500",
-                  shadow: "sm",
-                }}
-                _active={{
-                  bg: "gray.100",
-                  transform: "scale(0.98)",
-                }}
-                transition="all 0.15s ease"
-              >
-                <Icon as={FaPaste} boxSize="16px" mr={2} color="gray.500" />
-                Paste Subtitles
-              </Button>
-              <Button
-                flex={1}
-                size="md"
-                variant="outline"
-                borderWidth="1.5px"
-                borderColor="gray.200"
-                color="gray.700"
-                bg="white"
-                px={5}
-                py={6}
-                fontSize="14px"
-                fontWeight="500"
-                borderRadius="xl"
-                onClick={handleSrtCopy}
-                _hover={{
-                  bg: "gray.50",
-                  borderColor: "orange.400",
-                  color: "orange.500",
-                  shadow: "sm",
-                }}
-                _active={{
-                  bg: "gray.100",
-                  transform: "scale(0.98)",
-                }}
-                transition="all 0.15s ease"
-              >
-                <Icon as={FaCopy} boxSize="16px" mr={2} color="gray.500" />
-                Copy Subtitles
-              </Button>
-            </HStack>
           </VStack>
         </Box>
 
