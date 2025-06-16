@@ -510,10 +510,10 @@ function AppContent() {
                 transition="all 0.15s ease"
               >
                 <Icon as={FaVideo} boxSize="16px" mr={2} color="gray.500" />
-                Import Video
+                Import Media
                 <input
                   type="file"
-                  accept="video/*"
+                  accept="video/*,audio/*"
                   onChange={handleVideoImport}
                   style={{ display: "none" }}
                 />
