@@ -1,3 +1,4 @@
+import useUrlState from "@ahooksjs/use-url-state"
 import {
   Box,
   Button,
@@ -11,14 +12,7 @@ import { useGetState } from "ahooks"
 import { useEffect, useRef, useState } from "react"
 import { FaFileUpload, FaVideo } from "react-icons/fa"
 import ReactPlayer from "react-player"
-import {
-  Route,
-  BrowserRouter as Router,
-  Routes,
-  useLocation,
-  useNavigate,
-} from "react-router-dom"
-import useUrlState from "@ahooksjs/use-url-state"
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom"
 
 // IndexedDB utility functions
 const DB_NAME = "srt-reading-helper"
@@ -156,7 +150,10 @@ const listVideos = async (): Promise<
 const deleteVideo = async (key: string): Promise<void> => {
   const db = await initDB()
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction([STORE_NAME, SUBTITLES_STORE], "readwrite")
+    const transaction = db.transaction(
+      [STORE_NAME, SUBTITLES_STORE],
+      "readwrite",
+    )
     const videoStore = transaction.objectStore(STORE_NAME)
     const subtitlesStore = transaction.objectStore(SUBTITLES_STORE)
 
@@ -239,7 +236,6 @@ function AppContent() {
   }, [])
 
   // Load video from IndexedDB on mount
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     if (urlState.currentVideoKey) {
       loadVideo(urlState.currentVideoKey)
