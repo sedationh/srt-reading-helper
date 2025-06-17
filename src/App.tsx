@@ -224,6 +224,7 @@ function AppContent() {
   )
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isControlModeEnabled, setIsControlModeEnabled] = useState(false)
+  const [isSubtitlesVisible, setIsSubtitlesVisible] = useState(true)
   const [leftPanelWidth, setLeftPanelWidth] = useLocalStorageState(
     "leftPanelWidth",
     {
@@ -478,6 +479,10 @@ function AppContent() {
           e.preventDefault()
           setIsPlaying(!isPlaying)
           break
+        case "h":
+          e.preventDefault()
+          setIsSubtitlesVisible(!isSubtitlesVisible)
+          break
       }
     }
 
@@ -490,6 +495,7 @@ function AppContent() {
     getCurrentSubtitleIndex,
     handleSeek,
     getCurrentSubtitles,
+    isSubtitlesVisible,
   ])
 
   const handleEditSubtitle = (subtitle: Subtitle) => {
@@ -717,9 +723,40 @@ function AppContent() {
                       <Badge colorScheme="blue">D - 下一句</Badge>
                       <Badge colorScheme="blue">S - 重复</Badge>
                       <Badge colorScheme="blue">W - 暂停/播放</Badge>
+                      <Badge colorScheme="blue">H - 隐藏/显示字幕</Badge>
                     </HStack>
                   </Box>
                 )}
+              </VStack>
+            </Box>
+
+            {/* Subtitle Visibility Toggle */}
+            <Box
+              borderWidth={1}
+              borderRadius="lg"
+              p={4}
+              bg={isSubtitlesVisible ? "blue.50" : "gray.50"}
+              borderColor={isSubtitlesVisible ? "blue.200" : "gray.200"}
+            >
+              <VStack gap={2}>
+                <Button
+                  size="md"
+                  variant={isSubtitlesVisible ? "solid" : "outline"}
+                  colorScheme={isSubtitlesVisible ? "blue" : "gray"}
+                  onClick={() => setIsSubtitlesVisible(!isSubtitlesVisible)}
+                  w="full"
+                >
+                  <Icon as={() => <span>👁</span>} mr={2} />
+                  {isSubtitlesVisible ? "隐藏字幕" : "显示字幕"}
+                </Button>
+                <Box textAlign="center" fontSize="sm" color="gray.600">
+                  <Text fontWeight="medium" mb={1}>
+                    字幕状态：
+                  </Text>
+                  <Badge colorScheme={isSubtitlesVisible ? "blue" : "gray"}>
+                    {isSubtitlesVisible ? "显示中" : "已隐藏"}
+                  </Badge>
+                </Box>
               </VStack>
             </Box>
 
@@ -753,89 +790,112 @@ function AppContent() {
         </Box>
 
         <Box flex={1} ml={`${leftPanelWidth + 24}px`}>
-          <Box
-            ref={subtitlesContainerRef}
-            borderWidth={1}
-            borderRadius="lg"
-            p={4}
-            overflowY="auto"
-            h="calc(100vh - 4rem)"
-            onScroll={handleScroll}
-            bg="white"
-            shadow="sm"
-          >
-            {subtitles.map((subtitle) => {
-              const isCurrentSubtitle =
-                currentTime >= timeToSeconds(subtitle.startTime) &&
-                currentTime <= timeToSeconds(subtitle.endTime)
+          {isSubtitlesVisible ? (
+            <Box
+              ref={subtitlesContainerRef}
+              borderWidth={1}
+              borderRadius="lg"
+              p={4}
+              overflowY="auto"
+              h="calc(100vh - 4rem)"
+              onScroll={handleScroll}
+              bg="white"
+              shadow="sm"
+            >
+              {subtitles.map((subtitle) => {
+                const isCurrentSubtitle =
+                  currentTime >= timeToSeconds(subtitle.startTime) &&
+                  currentTime <= timeToSeconds(subtitle.endTime)
 
-              return (
-                <Box
-                  id={`subtitle-${subtitle.id}`}
-                  key={subtitle.id}
-                  mb={2}
-                  p={3}
-                  borderWidth={1}
-                  borderRadius="md"
-                  bg={isCurrentSubtitle ? "blue.50" : "white"}
-                  borderColor={isCurrentSubtitle ? "blue.100" : "gray.200"}
-                >
-                  <Flex justify="space-between" align="center" mb={1.5}>
-                    <HStack gap={2}>
-                      <Button
-                        size="xs"
-                        variant="ghost"
-                        colorScheme={isCurrentSubtitle ? "blue" : "gray"}
-                        onClick={() => handleSeek(subtitle.startTime)}
-                        height="24px"
-                        minWidth="60px"
-                        padding="0 8px"
-                        _hover={{
-                          bg: "orange.100",
-                          color: "orange.700",
-                        }}
-                      >
-                        <Icon
-                          as={() => <span>⏱</span>}
-                          mr={1}
-                          fontSize="14px"
-                        />
-                        播放
-                      </Button>
-                      <Button
-                        size="xs"
-                        variant="ghost"
-                        colorScheme={isCurrentSubtitle ? "blue" : "gray"}
-                        onClick={() => handleEditSubtitle(subtitle)}
-                        height="24px"
-                        minWidth="60px"
-                        padding="0 8px"
-                        _hover={{
-                          bg: "teal.100",
-                          color: "teal.700",
-                        }}
-                      >
-                        <Icon as={MdEdit} mr={1} fontSize="14px" />
-                        编辑
-                      </Button>
-                    </HStack>
-                    <Box
-                      fontSize="xs"
-                      color={isCurrentSubtitle ? "blue.600" : "gray.500"}
-                    >
-                      {subtitle.startTime} → {subtitle.endTime}
-                    </Box>
-                  </Flex>
+                return (
                   <Box
-                    fontSize="md"
-                    color={isCurrentSubtitle ? "blue.800" : "gray.700"}
+                    id={`subtitle-${subtitle.id}`}
+                    key={subtitle.id}
+                    mb={2}
+                    p={3}
+                    borderWidth={1}
+                    borderRadius="md"
+                    bg={isCurrentSubtitle ? "blue.50" : "white"}
+                    borderColor={isCurrentSubtitle ? "blue.100" : "gray.200"}
                   >
-                    {subtitle.text}
+                    <Flex justify="space-between" align="center" mb={1.5}>
+                      <HStack gap={2}>
+                        <Button
+                          size="xs"
+                          variant="ghost"
+                          colorScheme={isCurrentSubtitle ? "blue" : "gray"}
+                          onClick={() => handleSeek(subtitle.startTime)}
+                          height="24px"
+                          minWidth="60px"
+                          padding="0 8px"
+                          _hover={{
+                            bg: "orange.100",
+                            color: "orange.700",
+                          }}
+                        >
+                          <Icon
+                            as={() => <span>⏱</span>}
+                            mr={1}
+                            fontSize="14px"
+                          />
+                          播放
+                        </Button>
+                        <Button
+                          size="xs"
+                          variant="ghost"
+                          colorScheme={isCurrentSubtitle ? "blue" : "gray"}
+                          onClick={() => handleEditSubtitle(subtitle)}
+                          height="24px"
+                          minWidth="60px"
+                          padding="0 8px"
+                          _hover={{
+                            bg: "teal.100",
+                            color: "teal.700",
+                          }}
+                        >
+                          <Icon as={MdEdit} mr={1} fontSize="14px" />
+                          编辑
+                        </Button>
+                      </HStack>
+                      <Box
+                        fontSize="xs"
+                        color={isCurrentSubtitle ? "blue.600" : "gray.500"}
+                      >
+                        {subtitle.startTime} → {subtitle.endTime}
+                      </Box>
+                    </Flex>
+                    <Box
+                      fontSize="md"
+                      color={isCurrentSubtitle ? "blue.800" : "gray.700"}
+                    >
+                      {subtitle.text}
+                    </Box>
                   </Box>
-                </Box>
-              )
-            })}
-          </Box>
+                )
+              })}
+            </Box>
+          ) : (
+            <Box
+              borderWidth={1}
+              borderRadius="lg"
+              p={4}
+              h="calc(100vh - 4rem)"
+              bg="gray.50"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+            >
+              <VStack gap={2}>
+                <Icon as={() => <span>👁</span>} boxSize="8" color="gray.400" />
+                <Text color="gray.500" fontSize="lg">
+                  字幕已隐藏
+                </Text>
+                <Text color="gray.400" fontSize="sm">
+                  按 H 键或点击按钮显示字幕
+                </Text>
+              </VStack>
+            </Box>
+          )}
         </Box>
       </Flex>
       <EditSubtitleDialog
