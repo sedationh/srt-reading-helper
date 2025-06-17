@@ -7,10 +7,12 @@ import {
   HStack,
   Icon,
   VStack,
+  Badge,
+  Text,
 } from "@chakra-ui/react"
 import { useGetState } from "ahooks"
-import { useEffect, useRef, useState } from "react"
-import { FaFileUpload, FaVideo } from "react-icons/fa"
+import { useEffect, useRef, useState, useCallback } from "react"
+import { FaFileUpload, FaVideo, FaKeyboard } from "react-icons/fa"
 import { MdEdit } from "react-icons/md"
 import ReactPlayer from "react-player"
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom"
@@ -218,6 +220,7 @@ function AppContent() {
     null,
   )
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isControlModeEnabled, setIsControlModeEnabled] = useState(false)
 
   const [videos, setVideos] = useState<
     Array<{ key: string; name: string; size: number; type: string }>
@@ -339,13 +342,14 @@ function AppContent() {
     setCurrentTime(state.playedSeconds)
   }
 
-  const getCurrentSubtitles = () => {
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  const getCurrentSubtitles = useCallback(() => {
     return subtitles.filter(
       (subtitle) =>
         currentTime >= timeToSeconds(subtitle.startTime) &&
         currentTime <= timeToSeconds(subtitle.endTime),
     )
-  }
+  }, [subtitles, currentTime])
 
   // Handle user scrolling
   const handleScroll = () => {
@@ -395,63 +399,68 @@ function AppContent() {
     }
   }, [])
 
-  const handleSeek = (timeStr: string) => {
+  const handleSeek = useCallback((timeStr: string) => {
     const seconds = timeToSeconds(timeStr)
     if (playerRef.current) {
       playerRef.current.seekTo(seconds, "seconds")
       setIsPlaying(true)
     }
-  }
+  }, [])
 
   // Get current subtitle index
-  const getCurrentSubtitleIndex = () => {
+  const getCurrentSubtitleIndex = useCallback(() => {
     return subtitles.findIndex(
       (subtitle) =>
         currentTime >= timeToSeconds(subtitle.startTime) &&
         currentTime <= timeToSeconds(subtitle.endTime),
     )
-  }
+  }, [subtitles, currentTime])
 
-  // Handle keyboard shortcuts
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  // Keyboard controls
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Check if Cmd (Meta) key is pressed
-      if (e.metaKey) {
-        const currentIndex = getCurrentSubtitleIndex()
+      if (!isControlModeEnabled) return
 
-        switch (e.key) {
-          case "ArrowUp":
-            e.preventDefault()
-            if (currentIndex > 0) {
-              handleSeek(subtitles[currentIndex - 1].startTime)
-            }
-            break
-          case "ArrowDown":
-            e.preventDefault()
-            if (currentIndex < subtitles.length - 1) {
-              handleSeek(subtitles[currentIndex + 1].startTime)
-            }
-            break
-          case "r": {
-            e.preventDefault()
-            const currentSubs = getCurrentSubtitles()
-            if (currentSubs.length > 0) {
-              handleSeek(currentSubs[0].startTime)
-            }
-            break
+      const currentIndex = getCurrentSubtitleIndex()
+
+      switch (e.key.toLowerCase()) {
+        case "a":
+          e.preventDefault()
+          if (currentIndex > 0) {
+            handleSeek(subtitles[currentIndex - 1].startTime)
           }
-          case "Enter":
-            e.preventDefault()
-            setIsPlaying(!isPlaying)
-            break
+          break
+        case "d":
+          e.preventDefault()
+          if (currentIndex < subtitles.length - 1) {
+            handleSeek(subtitles[currentIndex + 1].startTime)
+          }
+          break
+        case "s": {
+          e.preventDefault()
+          const currentSubs = getCurrentSubtitles()
+          if (currentSubs.length > 0) {
+            handleSeek(currentSubs[0].startTime)
+          }
+          break
         }
+        case "w":
+          e.preventDefault()
+          setIsPlaying(!isPlaying)
+          break
       }
     }
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [subtitles, currentTime, isPlaying])
+  }, [
+    subtitles,
+    isPlaying,
+    isControlModeEnabled,
+    getCurrentSubtitleIndex,
+    handleSeek,
+    getCurrentSubtitles,
+  ])
 
   const handleEditSubtitle = (subtitle: Subtitle) => {
     setSelectedSubtitle(subtitle)
@@ -634,6 +643,40 @@ function AppContent() {
                     </Button>
                   </Flex>
                 ))}
+              </VStack>
+            </Box>
+            {/* Control Mode Button */}
+            <Box
+              borderWidth={1}
+              borderRadius="lg"
+              p={4}
+              bg={isControlModeEnabled ? "green.50" : "gray.50"}
+              borderColor={isControlModeEnabled ? "green.200" : "gray.200"}
+            >
+              <VStack gap={2}>
+                <Button
+                  size="md"
+                  variant={isControlModeEnabled ? "solid" : "outline"}
+                  colorScheme={isControlModeEnabled ? "green" : "gray"}
+                  onClick={() => setIsControlModeEnabled(!isControlModeEnabled)}
+                  w="full"
+                >
+                  <Icon as={FaKeyboard} mr={2} />
+                  {isControlModeEnabled ? "控制模式已开启" : "开启控制模式"}
+                </Button>
+                {isControlModeEnabled && (
+                  <Box textAlign="center" fontSize="sm" color="gray.600">
+                    <Text fontWeight="medium" mb={1}>
+                      快捷键：
+                    </Text>
+                    <HStack justify="center" gap={4} wrap="wrap">
+                      <Badge colorScheme="blue">A - 上一句</Badge>
+                      <Badge colorScheme="blue">D - 下一句</Badge>
+                      <Badge colorScheme="blue">S - 重复</Badge>
+                      <Badge colorScheme="blue">W - 暂停/播放</Badge>
+                    </HStack>
+                  </Box>
+                )}
               </VStack>
             </Box>
           </VStack>
