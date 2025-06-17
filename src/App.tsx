@@ -9,8 +9,9 @@ import {
   VStack,
   Badge,
   Text,
+  Input,
 } from "@chakra-ui/react"
-import { useGetState } from "ahooks"
+import { useGetState, useLocalStorageState } from "ahooks"
 import { useEffect, useRef, useState, useCallback } from "react"
 import { FaFileUpload, FaVideo, FaKeyboard } from "react-icons/fa"
 import { MdEdit } from "react-icons/md"
@@ -211,6 +212,8 @@ function parseSRT(srtContent: string): Subtitle[] {
   return subtitles
 }
 
+const DEFAULT_LEFT_PANEL_WIDTH = 600
+
 function AppContent() {
   const [videoUrl, setVideoUrl] = useState<string | null>(null)
   const [urlState, setUrlState] = useUrlState({
@@ -221,6 +224,13 @@ function AppContent() {
   )
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isControlModeEnabled, setIsControlModeEnabled] = useState(false)
+  const [leftPanelWidth, setLeftPanelWidth] = useLocalStorageState(
+    "leftPanelWidth",
+    {
+      defaultValue: DEFAULT_LEFT_PANEL_WIDTH,
+    },
+  )
+  const widthInputRef = useRef<HTMLInputElement>(null)
 
   const [videos, setVideos] = useState<
     Array<{ key: string; name: string; size: number; type: string }>
@@ -400,6 +410,16 @@ function AppContent() {
   }, [])
 
   const handleSeek = useCallback((timeStr: string) => {
+    const timeToSeconds = (timeStr: string): number => {
+      const [hours, minutes, seconds] = timeStr.split(":")
+      const [secs, ms] = seconds.split(",")
+      return (
+        Number.parseInt(hours) * 3600 +
+        Number.parseInt(minutes) * 60 +
+        Number.parseInt(secs) +
+        Number.parseInt(ms) / 1000
+      )
+    }
     const seconds = timeToSeconds(timeStr)
     if (playerRef.current) {
       playerRef.current.seekTo(seconds, "seconds")
@@ -409,6 +429,16 @@ function AppContent() {
 
   // Get current subtitle index
   const getCurrentSubtitleIndex = useCallback(() => {
+    const timeToSeconds = (timeStr: string): number => {
+      const [hours, minutes, seconds] = timeStr.split(":")
+      const [secs, ms] = seconds.split(",")
+      return (
+        Number.parseInt(hours) * 3600 +
+        Number.parseInt(minutes) * 60 +
+        Number.parseInt(secs) +
+        Number.parseInt(ms) / 1000
+      )
+    }
     return subtitles.findIndex(
       (subtitle) =>
         currentTime >= timeToSeconds(subtitle.startTime) &&
@@ -483,10 +513,23 @@ function AppContent() {
     }
   }
 
+  const handleConfirmWidth = () => {
+    if (widthInputRef.current) {
+      setLeftPanelWidth(Number(widthInputRef.current.value))
+    }
+  }
+
   return (
-    <Container maxW="container.xl" py={8}>
-      <Flex gap={6}>
-        <Box className="notranslate" w="600px" position="fixed" top="2rem">
+    <Container maxW="container.xl" py={4}>
+      <Flex gap={4}>
+        <Box
+          className="notranslate"
+          w={`${leftPanelWidth}px`}
+          position="fixed"
+          overflowY="auto"
+          h="calc(100vh - 4rem)"
+          paddingRight={4}
+        >
           <VStack gap={4} align="stretch">
             <Box
               flex={1}
@@ -679,10 +722,37 @@ function AppContent() {
                 )}
               </VStack>
             </Box>
+
+            {/* Width Input */}
+            <Box>
+              <Text fontSize="sm" color="gray.600" mb={1}>
+                左侧面板宽度
+              </Text>
+              <HStack>
+                <Input
+                  ref={widthInputRef}
+                  min={300}
+                  max={800}
+                  defaultValue={DEFAULT_LEFT_PANEL_WIDTH}
+                  size="sm"
+                  w="100px"
+                />
+                <Text fontSize="sm" color="gray.500">
+                  px
+                </Text>
+                <Button
+                  size="sm"
+                  colorScheme="blue"
+                  onClick={handleConfirmWidth}
+                >
+                  确认
+                </Button>
+              </HStack>
+            </Box>
           </VStack>
         </Box>
 
-        <Box flex={1} ml="calc(600px + 1.5rem)">
+        <Box flex={1} ml={`${leftPanelWidth + 24}px`}>
           <Box
             ref={subtitlesContainerRef}
             borderWidth={1}
