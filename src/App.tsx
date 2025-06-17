@@ -486,8 +486,8 @@ function AppContent() {
   return (
     <Container maxW="container.xl" py={8}>
       <Flex gap={6}>
-        <Box w="600px" position="fixed" top="2rem">
-          <VStack gap={4} align="stretch" h="80vh">
+        <Box className="notranslate" w="600px" position="fixed" top="2rem">
+          <VStack gap={4} align="stretch">
             <Box
               flex={1}
               borderWidth={1}
