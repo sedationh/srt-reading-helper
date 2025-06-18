@@ -223,7 +223,12 @@ function AppContent() {
     null,
   )
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [isControlModeEnabled, setIsControlModeEnabled] = useState(false)
+  const [isControlModeEnabled, setIsControlModeEnabled] = useLocalStorageState(
+    "isControlModeEnabled",
+    {
+      defaultValue: false,
+    },
+  )
   const [isSubtitlesVisible, setIsSubtitlesVisible] = useState(true)
   const [leftPanelWidth, setLeftPanelWidth] = useLocalStorageState(
     "leftPanelWidth",
@@ -450,7 +455,7 @@ function AppContent() {
   // Keyboard controls
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isControlModeEnabled) return
+      if (!isControlModeEnabled && !isEditDialogOpen) return
 
       const currentIndex = getCurrentSubtitleIndex()
 
@@ -496,6 +501,7 @@ function AppContent() {
     handleSeek,
     getCurrentSubtitles,
     isSubtitlesVisible,
+    isEditDialogOpen,
   ])
 
   const handleEditSubtitle = (subtitle: Subtitle) => {
