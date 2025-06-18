@@ -455,7 +455,7 @@ function AppContent() {
   // Keyboard controls
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isControlModeEnabled && !isEditDialogOpen) return
+      if (!isControlModeEnabled && isEditDialogOpen) return
 
       const currentIndex = getCurrentSubtitleIndex()
 
