@@ -1,11 +1,11 @@
 import {
   Box,
   Button,
+  Dialog,
   Input,
+  Portal,
   Text,
   Textarea,
-  Dialog,
-  Portal,
 } from "@chakra-ui/react"
 import { useEffect, useState } from "react"
 
@@ -194,4 +194,4 @@ export function EditSubtitleDialog({
       </Portal>
     </Dialog.Root>
   )
-} 
+}

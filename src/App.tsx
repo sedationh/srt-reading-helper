@@ -1,19 +1,25 @@
 import useUrlState from "@ahooksjs/use-url-state"
 import {
+  Badge,
   Box,
   Button,
   Container,
   Flex,
   HStack,
   Icon,
-  VStack,
-  Badge,
-  Text,
   Input,
+  Text,
+  VStack,
 } from "@chakra-ui/react"
 import { useGetState, useLocalStorageState } from "ahooks"
-import { useEffect, useRef, useState, useCallback } from "react"
-import { FaFileUpload, FaVideo, FaKeyboard } from "react-icons/fa"
+import { useCallback, useEffect, useRef, useState } from "react"
+import {
+  FaFileUpload,
+  FaKeyboard,
+  FaVideo,
+  FaVolumeMute,
+  FaVolumeUp,
+} from "react-icons/fa"
 import { MdEdit } from "react-icons/md"
 import ReactPlayer from "react-player"
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom"
@@ -246,6 +252,12 @@ function AppContent() {
   const [isUserScrolling, setIsUserScrolling] = useGetState(false)
   const scrollTimeoutRef = useRef<number | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [volume, setVolume] = useLocalStorageState("volume", {
+    defaultValue: 0.8,
+  })
+  const [isMuted, setIsMuted] = useLocalStorageState("isMuted", {
+    defaultValue: false,
+  })
   const subtitlesContainerRef = useRef<HTMLDivElement>(null)
   const playerRef = useRef<ReactPlayer>(null)
 
@@ -488,6 +500,18 @@ function AppContent() {
           e.preventDefault()
           setIsSubtitlesVisible(!isSubtitlesVisible)
           break
+        case "m":
+          e.preventDefault()
+          handleMuteToggle()
+          break
+        case "arrowup":
+          e.preventDefault()
+          handleVolumeChange(Math.min(1, volume + 0.1))
+          break
+        case "arrowdown":
+          e.preventDefault()
+          handleVolumeChange(Math.max(0, volume - 0.1))
+          break
       }
     }
 
@@ -531,6 +555,19 @@ function AppContent() {
     }
   }
 
+  const handleVolumeChange = (newVolume: number) => {
+    setVolume(newVolume)
+    if (newVolume === 0) {
+      setIsMuted(true)
+    } else if (isMuted) {
+      setIsMuted(false)
+    }
+  }
+
+  const handleMuteToggle = () => {
+    setIsMuted(!isMuted)
+  }
+
   return (
     <Container maxW="container.xl" py={4}>
       <Flex gap={4}>
@@ -556,8 +593,8 @@ function AppContent() {
                   url={videoUrl}
                   width="100%"
                   height="100%"
-                  controls
                   playing={isPlaying}
+                  volume={isMuted ? 0 : volume}
                   onProgress={handleProgress}
                   onPause={() => setIsPlaying(false)}
                   onPlay={() => setIsPlaying(true)}
@@ -730,6 +767,9 @@ function AppContent() {
                       <Badge colorScheme="blue">S - 重复</Badge>
                       <Badge colorScheme="blue">W - 暂停/播放</Badge>
                       <Badge colorScheme="blue">H - 隐藏/显示字幕</Badge>
+                      <Badge colorScheme="blue">M - 静音/取消静音</Badge>
+                      <Badge colorScheme="blue">↑ - 音量+</Badge>
+                      <Badge colorScheme="blue">↓ - 音量-</Badge>
                     </HStack>
                   </Box>
                 )}
@@ -761,6 +801,71 @@ function AppContent() {
                   </Text>
                   <Badge colorScheme={isSubtitlesVisible ? "blue" : "gray"}>
                     {isSubtitlesVisible ? "显示中" : "已隐藏"}
+                  </Badge>
+                </Box>
+              </VStack>
+            </Box>
+
+            {/* Volume Control */}
+            <Box
+              borderWidth={1}
+              borderRadius="lg"
+              p={4}
+              bg={isMuted ? "red.50" : "purple.50"}
+              borderColor={isMuted ? "red.200" : "purple.200"}
+            >
+              <VStack gap={3}>
+                <HStack justify="space-between" w="full">
+                  <Text fontSize="sm" fontWeight="medium" color="gray.700">
+                    音量控制
+                  </Text>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    colorScheme={isMuted ? "red" : "purple"}
+                    onClick={handleMuteToggle}
+                    px={2}
+                  >
+                    <Icon
+                      as={isMuted ? FaVolumeMute : FaVolumeUp}
+                      boxSize="16px"
+                    />
+                  </Button>
+                </HStack>
+
+                <Box w="full">
+                  <HStack gap={2} align="center">
+                    <Icon as={FaVolumeMute} boxSize="12px" color="gray.500" />
+                    <Box flex={1} position="relative">
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value={isMuted ? 0 : volume}
+                        onChange={(e) =>
+                          handleVolumeChange(Number(e.target.value))
+                        }
+                        style={{
+                          width: "100%",
+                          height: "6px",
+                          borderRadius: "3px",
+                          background: `linear-gradient(to right, #805ad5 0%, #805ad5 ${(isMuted ? 0 : volume) * 100}%, #e2e8f0 ${(isMuted ? 0 : volume) * 100}%, #e2e8f0 100%)`,
+                          outline: "none",
+                          cursor: "pointer",
+                        }}
+                      />
+                    </Box>
+                    <Icon as={FaVolumeUp} boxSize="12px" color="gray.500" />
+                  </HStack>
+                </Box>
+
+                <Box textAlign="center" fontSize="sm" color="gray.600">
+                  <Text fontWeight="medium" mb={1}>
+                    音量状态：
+                  </Text>
+                  <Badge colorScheme={isMuted ? "red" : "purple"}>
+                    {isMuted ? "已静音" : `${Math.round(volume * 100)}%`}
                   </Badge>
                 </Box>
               </VStack>
