@@ -457,11 +457,27 @@ function AppContent() {
         Number.parseInt(ms) / 1000
       )
     }
-    return subtitles.findIndex(
+
+    // First try to find exact match (current time within subtitle range)
+    const exactIndex = subtitles.findIndex(
       (subtitle) =>
         currentTime >= timeToSeconds(subtitle.startTime) &&
         currentTime <= timeToSeconds(subtitle.endTime),
     )
+
+    if (exactIndex !== -1) {
+      return exactIndex
+    }
+
+    // If no exact match, find the last subtitle that has started (previous subtitle)
+    // Search backwards to find the most recent subtitle that has started
+    for (let i = subtitles.length - 1; i >= 0; i--) {
+      if (timeToSeconds(subtitles[i].startTime) <= currentTime) {
+        return i
+      }
+    }
+
+    return -1
   }, [subtitles, currentTime])
 
   // Keyboard controls
@@ -526,6 +542,7 @@ function AppContent() {
     getCurrentSubtitles,
     isSubtitlesVisible,
     isEditDialogOpen,
+    volume,
   ])
 
   const handleEditSubtitle = (subtitle: Subtitle) => {
