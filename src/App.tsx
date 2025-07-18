@@ -366,6 +366,15 @@ function AppContent() {
     )
   }
 
+  const secondsToTimeStr = (seconds: number): string => {
+    const hours = Math.floor(seconds / 3600)
+    const minutes = Math.floor((seconds % 3600) / 60)
+    const secs = Math.floor(seconds % 60)
+    const ms = Math.floor((seconds % 1) * 1000)
+
+    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")},${ms.toString().padStart(3, "0")}`
+  }
+
   const handleProgress = (state: { playedSeconds: number }) => {
     setCurrentTime(state.playedSeconds)
   }
@@ -528,6 +537,10 @@ function AppContent() {
           e.preventDefault()
           handleVolumeChange(Math.max(0, volume - 0.1))
           break
+        case "e":
+          e.preventDefault()
+          handleEditCurrentSubtitle()
+          break
       }
     }
 
@@ -548,6 +561,33 @@ function AppContent() {
   const handleEditSubtitle = (subtitle: Subtitle) => {
     setSelectedSubtitle(subtitle)
     setIsEditDialogOpen(true)
+  }
+
+  const handleEditCurrentSubtitle = () => {
+    // 暂停视频播放
+    setIsPlaying(false)
+
+    const currentSubs = getCurrentSubtitles()
+    if (currentSubs.length > 0) {
+      // 编辑当前字幕，将起始时间设置为当前时间
+      const currentSubtitle = {
+        ...currentSubs[0],
+        startTime: secondsToTimeStr(currentTime),
+      }
+      setSelectedSubtitle(currentSubtitle)
+      setIsEditDialogOpen(true)
+    } else {
+      // 如果没有当前字幕，寻找最近的字幕进行编辑
+      const currentIndex = getCurrentSubtitleIndex()
+      if (currentIndex !== -1 && currentIndex < subtitles.length) {
+        const subtitle = {
+          ...subtitles[currentIndex],
+          startTime: secondsToTimeStr(currentTime),
+        }
+        setSelectedSubtitle(subtitle)
+        setIsEditDialogOpen(true)
+      }
+    }
   }
 
   const handleSaveSubtitle = async (editedSubtitle: Subtitle) => {
@@ -585,9 +625,12 @@ function AppContent() {
     setIsMuted(!isMuted)
   }
 
-  const { run: handleVolumeChangeDebounced } = useDebounceFn(handleVolumeChange, {
-    wait: 100,
-  })
+  const { run: handleVolumeChangeDebounced } = useDebounceFn(
+    handleVolumeChange,
+    {
+      wait: 100,
+    },
+  )
 
   return (
     <Container maxW="container.xl" py={4}>
@@ -789,6 +832,7 @@ function AppContent() {
                       <Badge colorScheme="blue">S - 重复</Badge>
                       <Badge colorScheme="blue">W - 暂停/播放</Badge>
                       <Badge colorScheme="blue">H - 隐藏/显示字幕</Badge>
+                      <Badge colorScheme="blue">E - 编辑当前字幕</Badge>
                       <Badge colorScheme="blue">M - 静音/取消静音</Badge>
                       <Badge colorScheme="blue">↑ - 音量+</Badge>
                       <Badge colorScheme="blue">↓ - 音量-</Badge>
