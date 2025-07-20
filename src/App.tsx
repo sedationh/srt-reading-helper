@@ -509,7 +509,7 @@ function AppContent() {
             handleSeek(subtitles[currentIndex + 1].startTime)
           }
           break
-        case "s": {
+        case "r": {
           e.preventDefault()
           const currentSubs = getCurrentSubtitles()
           if (currentSubs.length > 0) {
@@ -517,7 +517,7 @@ function AppContent() {
           }
           break
         }
-        case "w":
+        case "s":
           e.preventDefault()
           setIsPlaying(!isPlaying)
           break
@@ -829,8 +829,8 @@ function AppContent() {
                     <HStack justify="center" gap={4} wrap="wrap">
                       <Badge colorScheme="blue">A - 上一句</Badge>
                       <Badge colorScheme="blue">D - 下一句</Badge>
-                      <Badge colorScheme="blue">S - 重复</Badge>
-                      <Badge colorScheme="blue">W - 暂停/播放</Badge>
+                      <Badge colorScheme="blue">R - 重复</Badge>
+                      <Badge colorScheme="blue">S - 暂停/播放</Badge>
                       <Badge colorScheme="blue">H - 隐藏/显示字幕</Badge>
                       <Badge colorScheme="blue">E - 编辑当前字幕</Badge>
                       <Badge colorScheme="blue">M - 静音/取消静音</Badge>
