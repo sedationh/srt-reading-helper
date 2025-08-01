@@ -842,36 +842,6 @@ function AppContent() {
               </VStack>
             </Box>
 
-            {/* Subtitle Visibility Toggle */}
-            <Box
-              borderWidth={1}
-              borderRadius="lg"
-              p={4}
-              bg={isSubtitlesVisible ? "blue.50" : "gray.50"}
-              borderColor={isSubtitlesVisible ? "blue.200" : "gray.200"}
-            >
-              <VStack gap={2}>
-                <Button
-                  size="md"
-                  variant={isSubtitlesVisible ? "solid" : "outline"}
-                  colorScheme={isSubtitlesVisible ? "blue" : "gray"}
-                  onClick={() => setIsSubtitlesVisible(!isSubtitlesVisible)}
-                  w="full"
-                >
-                  <Icon as={() => <span>👁</span>} mr={2} />
-                  {isSubtitlesVisible ? "隐藏字幕" : "显示字幕"}
-                </Button>
-                <Box textAlign="center" fontSize="sm" color="gray.600">
-                  <Text fontWeight="medium" mb={1}>
-                    字幕状态：
-                  </Text>
-                  <Badge colorScheme={isSubtitlesVisible ? "blue" : "gray"}>
-                    {isSubtitlesVisible ? "显示中" : "已隐藏"}
-                  </Badge>
-                </Box>
-              </VStack>
-            </Box>
-
             {/* Volume Control */}
             {isControlModeEnabled && (
               <Box
@@ -964,6 +934,79 @@ function AppContent() {
                   确认
                 </Button>
               </HStack>
+              <Box mt={4}>
+                <Text fontSize="sm" color="gray.600" mb={1}>
+                  快速选择宽度
+                </Text>
+                <HStack>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setLeftPanelWidth(500)
+                      if (widthInputRef.current) {
+                        widthInputRef.current.value = "500"
+                      }
+                    }}
+                  >
+                    500px
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setLeftPanelWidth(600)
+                      if (widthInputRef.current) {
+                        widthInputRef.current.value = "600"
+                      }
+                    }}
+                  >
+                    600px
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setLeftPanelWidth(700)
+                      if (widthInputRef.current) {
+                        widthInputRef.current.value = "700"
+                      }
+                    }}
+                  >
+                    700px
+                  </Button>
+                </HStack>
+              </Box>
+            </Box>
+            {/* Subtitle Visibility Toggle */}
+            <Box
+              borderWidth={1}
+              borderRadius="lg"
+              p={4}
+              bg={isSubtitlesVisible ? "blue.50" : "gray.50"}
+              borderColor={isSubtitlesVisible ? "blue.200" : "gray.200"}
+              className="mt-2"
+            >
+              <VStack gap={2}>
+                <Button
+                  size="md"
+                  variant={isSubtitlesVisible ? "solid" : "outline"}
+                  colorScheme={isSubtitlesVisible ? "blue" : "gray"}
+                  onClick={() => setIsSubtitlesVisible(!isSubtitlesVisible)}
+                  w="full"
+                >
+                  <Icon as={() => <span>👁</span>} mr={2} />
+                  {isSubtitlesVisible ? "隐藏字幕" : "显示字幕"}
+                </Button>
+                <Box textAlign="center" fontSize="sm" color="gray.600">
+                  <Text fontWeight="medium" mb={1}>
+                    字幕状态：
+                  </Text>
+                  <Badge colorScheme={isSubtitlesVisible ? "blue" : "gray"}>
+                    {isSubtitlesVisible ? "显示中" : "已隐藏"}
+                  </Badge>
+                </Box>
+              </VStack>
             </Box>
           </VStack>
         </Box>
