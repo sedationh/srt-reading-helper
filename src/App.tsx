@@ -1091,6 +1091,7 @@ function AppContent() {
                     </Box>
                   </Flex>
                   <Box
+                    className="notranslate"
                     fontSize="md"
                     color={isCurrentSubtitle ? "blue.800" : "gray.700"}
                   >
