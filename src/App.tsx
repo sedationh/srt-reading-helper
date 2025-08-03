@@ -1084,6 +1084,7 @@ function AppContent() {
                       </Button>
                     </HStack>
                     <Box
+                      className="notranslate"
                       fontSize="xs"
                       color={isCurrentSubtitle ? "blue.600" : "gray.500"}
                     >
@@ -1091,7 +1092,6 @@ function AppContent() {
                     </Box>
                   </Flex>
                   <Box
-                    className="notranslate"
                     fontSize="md"
                     color={isCurrentSubtitle ? "blue.800" : "gray.700"}
                   >
